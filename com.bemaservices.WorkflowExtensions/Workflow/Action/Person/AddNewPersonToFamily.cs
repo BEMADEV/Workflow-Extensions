@@ -182,7 +182,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                                 PersonService.AddPersonToFamily( person, true, familyGroup.Id, groupRole.Id, rockContext );
                                 if ( familyGroup != null && familyGroup.Members.Any() )
                                 {
-                                    person = familyGroup.Members.Select( m => m.Person ).First();
+                                    person = familyGroup.Members.Select( m => m.Person ).Where(p=> p.Id == person.Id).First();
                                     personAlias = person.PrimaryAlias;
                                 }
                             }
