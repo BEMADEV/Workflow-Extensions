@@ -65,7 +65,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
         Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "", 10 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "", 11 )]
+        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT, "", 11 )]
 
     public class GetPersonFromFields : ActionComponent
     {
@@ -143,7 +143,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                             var personQuery = new PersonService.PersonMatchQuery( firstName, lastName, email, mobileNumber, null, birthMonth, birthDay, birthYear );
                             person = personService.FindPerson( personQuery, true );
 
-                            if ( person.IsNotNull() )
+                            if ( person != null )
                             {
                                 personAlias = person.PrimaryAlias;
                                 if ( !familyGroup.Members.Where( gm => gm.PersonId == person.Id ).Any() )

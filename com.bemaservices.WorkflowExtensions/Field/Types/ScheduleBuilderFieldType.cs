@@ -309,11 +309,11 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
         {
             var schedule = new Schedule();
             schedule.iCalendarContent = iCalContent;
-            var calEvent = ScheduleICalHelper.GetCalendarEvent( iCalContent );
+            var calEvent = InetCalendarHelper.CreateCalendarEvent( iCalContent );
             if ( calEvent != null )
             {
-                schedule.EffectiveStartDate = calEvent.DTStart != null ? calEvent.DTStart.Value.Date : ( DateTime? ) null;
-                schedule.EffectiveEndDate = calEvent.DTEnd != null ? calEvent.DTEnd.Value.Date : ( DateTime? ) null;
+                schedule.EffectiveStartDate = calEvent.Start != null ? calEvent.Start.Value.Date : ( DateTime? ) null;
+                schedule.EffectiveEndDate = calEvent.End != null ? calEvent.End.Value.Date : ( DateTime? ) null;
             }
 
             return schedule;

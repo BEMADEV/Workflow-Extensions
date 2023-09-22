@@ -238,7 +238,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                 smsMessage.FromNumber = DefinedValueCache.Get( fromId.Value );
                 smsMessage.Message = message;
                 smsMessage.CreateCommunicationRecord = GetAttributeValue( action, "SaveCommunicationHistory" ).AsBoolean();
-                smsMessage.communicationName = action.ActionTypeCache.Name;
+                smsMessage.CommunicationName = action.ActionTypeCache.Name;
 
                 if ( binaryFile != null )
                 {
