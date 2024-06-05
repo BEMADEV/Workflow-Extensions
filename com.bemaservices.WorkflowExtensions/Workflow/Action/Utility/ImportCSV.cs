@@ -186,16 +186,15 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action.Utility
 
                 var output = new List<List<string>>();
 
-                var fieldCount = -1;
                 var fieldList = new List<string>();
 
                 foreach (var row in records)
                 {
                     var fieldDict = ((IDictionary<string, object>)row);
                             
-                    if (fieldCount == -1)
+                    if (fieldList.Count == 0)
                     {
-                        fieldCount = fieldDict.Count;
+                        var fieldCount = fieldDict.Count;
                         for (int i = 1; i <= fieldCount; i++)
                         {
                             fieldList.Add("Field" + i);
