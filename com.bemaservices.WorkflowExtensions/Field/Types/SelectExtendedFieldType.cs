@@ -221,6 +221,57 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
         #endregion
 
         #region Formatting
+        public override string GetTextValue( string privateValue, Dictionary<string, string> privateConfigurationValues )
+        {
+            if ( privateValue == null )
+            {
+                return string.Empty;
+            }
+
+            string formattedValue = string.Empty;
+
+            string parentValue = string.Empty;
+            string childValue = string.Empty;
+
+            string formattedParentValue = string.Empty;
+            string formattedChildValue = string.Empty;
+
+            string[] parts = ( privateValue ?? string.Empty ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
+            if ( parts.Length > 0 )
+            {
+                parentValue = parts[0];
+                if ( parts.Length > 1 )
+                {
+                    childValue = parts[1];
+                }
+            }
+
+            if ( !string.IsNullOrWhiteSpace( parentValue ) && privateConfigurationValues.ContainsKey( PARENT_VALUES_KEY ) )
+            {
+                var configuredValues = Helper.GetConfiguredValues( privateConfigurationValues, PARENT_VALUES_KEY );
+                var selectedValues = parentValue.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
+                formattedParentValue = configuredValues
+                    .Where( v => selectedValues.Contains( v.Key ) )
+                    .Select( v => v.Value )
+                    .ToList()
+                    .AsDelimited( ", " );
+            }
+
+            if ( !string.IsNullOrWhiteSpace( childValue ) && privateConfigurationValues.ContainsKey( CHILD_VALUES_KEY ) )
+            {
+                var configuredValues = GetConfiguredChildValues( privateConfigurationValues, CHILD_VALUES_KEY );
+                var selectedValues = childValue.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
+                formattedChildValue = configuredValues
+                    .Where( v => selectedValues.Contains( v.Key ) )
+                    .Select( v => v.Value )
+                    .ToList()
+                    .AsDelimited( ", " );
+            }
+
+            formattedValue = string.Format( "{0}: {1}", formattedParentValue, formattedChildValue );
+
+            return formattedValue;
+        }
 
         /// <summary>
         /// Returns the field's current value(s)
@@ -232,49 +283,7 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
         /// <returns></returns>
         public override string FormatValue( System.Web.UI.Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
         {
-            string formattedValue = string.Empty;
-
-            string parentValue = string.Empty;
-            string childValue = string.Empty;
-
-            string formattedParentValue = string.Empty;
-            string formattedChildValue = string.Empty;
-
-            string[] parts = ( value ?? string.Empty ).Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries );
-            if ( parts.Length > 0 )
-            {
-                parentValue = parts[0];
-                if ( parts.Length > 1 )
-                {
-                    childValue = parts[1];
-                }
-            }
-
-            if ( !string.IsNullOrWhiteSpace( parentValue ) && configurationValues.ContainsKey( PARENT_VALUES_KEY ) )
-            {
-                var configuredValues = Helper.GetConfiguredValues( configurationValues, PARENT_VALUES_KEY );
-                var selectedValues = parentValue.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
-                formattedParentValue = configuredValues
-                    .Where( v => selectedValues.Contains( v.Key ) )
-                    .Select( v => v.Value )
-                    .ToList()
-                    .AsDelimited( ", " );
-            }
-
-            if ( !string.IsNullOrWhiteSpace( childValue ) && configurationValues.ContainsKey( CHILD_VALUES_KEY ) )
-            {
-                var configuredValues = GetConfiguredChildValues( configurationValues, CHILD_VALUES_KEY );
-                var selectedValues = childValue.Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
-                formattedChildValue = configuredValues
-                    .Where( v => selectedValues.Contains( v.Key ) )
-                    .Select( v => v.Value )
-                    .ToList()
-                    .AsDelimited( ", " );
-            }
-
-            formattedValue = string.Format( "{0}: {1}", formattedParentValue, formattedChildValue );
-
-            return base.FormatValue( parentControl, formattedValue, null, condensed );
+            return GetTextValue( value, configurationValues.ToDictionary( k => k.Key, k => k.Value.Value ) );            
         }
 
         #endregion
@@ -435,6 +444,19 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
             if ( configurationValues.ContainsKey( propertyName ) )
             {
                 string listSource = configurationValues[propertyName].Value;
+                items = selectExtendedPicker.GetFilteredChildValues( listSource, parentValue );
+            }
+
+            return items;
+        }
+
+        public static Dictionary<string, string> GetConfiguredChildValues( Dictionary<string, string> configurationValues, string propertyName, string parentValue = null )
+        {
+            var items = new Dictionary<string, string>();
+            var selectExtendedPicker = new SelectExtendedPicker();
+            if ( configurationValues.ContainsKey( propertyName ) )
+            {
+                string listSource = configurationValues[propertyName];
                 items = selectExtendedPicker.GetFilteredChildValues( listSource, parentValue );
             }
 
