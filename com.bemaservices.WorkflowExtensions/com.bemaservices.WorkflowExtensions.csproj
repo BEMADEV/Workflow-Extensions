@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CsvHelper">
+      <HintPath>$(SolutionDir)RockWeb\Bin\CsvHelper.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>$(SolutionDir)RockWeb\Bin\EntityFramework.dll</HintPath>
     </Reference>
@@ -93,6 +96,7 @@
     <Compile Include="Workflow\Action\Person\ResetPassword.cs" />
     <Compile Include="Workflow\Action\Person\AddNewPersonToFamily.cs" />
     <Compile Include="Workflow\Action\Utility\EntityNoteAdd.cs" />
+    <Compile Include="Workflow\Action\Utility\ImportCSV.cs" />
     <Compile Include="Workflow\Action\Utility\NoteWatchAdd.cs" />
     <Compile Include="Workflow\Action\Utility\SetEntityAttributes.cs" />
     <Compile Include="Workflow\Action\Utility\AddMetricValue.cs" />
