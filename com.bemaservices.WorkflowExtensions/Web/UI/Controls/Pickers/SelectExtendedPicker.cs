@@ -552,7 +552,6 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
 
             var items = new Dictionary<string, string>();
             var options = new Rock.Lava.CommonMergeFieldsOptions();
-            options.GetLegacyGlobalMergeFields = false;
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null, options );
 
             string listSource = ParentValues.ResolveMergeFields( mergeFields );
@@ -565,7 +564,7 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
                 {
                     foreach ( DataRow row in dataTable.Rows )
                     {
-                        items.AddOrIgnore( row["value"].ToString(), row["text"].ToString() );
+                        items.AddOrReplace( row["value"].ToString(), row["text"].ToString() );
                     }
                 }
             }
@@ -577,7 +576,7 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
                     var keyValueArray = keyvalue.Split( new char[] { '^' }, StringSplitOptions.RemoveEmptyEntries );
                     if ( keyValueArray.Length > 0 )
                     {
-                        items.AddOrIgnore( keyValueArray[0].Trim(), keyValueArray.Length > 1 ? keyValueArray[1].Trim() : keyValueArray[0].Trim() );
+                        items.AddOrReplace( keyValueArray[0].Trim(), keyValueArray.Length > 1 ? keyValueArray[1].Trim() : keyValueArray[0].Trim() );
                     }
                 }
             }
@@ -611,7 +610,6 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
         {
             var items = new Dictionary<string, string>();
             var options = new Rock.Lava.CommonMergeFieldsOptions();
-            options.GetLegacyGlobalMergeFields = false;
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null, options );
 
             string listSource = childValues.ResolveMergeFields( mergeFields );
@@ -626,7 +624,7 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
                     {
                         if ( parentValue.IsNullOrWhiteSpace() || row["parentvalue"].ToString() == parentValue )
                         {
-                            items.AddOrIgnore( row["value"].ToString(), row["text"].ToString() );
+                            items.AddOrReplace( row["value"].ToString(), row["text"].ToString() );
                         }
                     }
                 }
@@ -640,7 +638,7 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
                     {
                         if ( parentValue.IsNullOrWhiteSpace() || keyValueArray[1].Trim() == parentValue )
                         {
-                            items.AddOrIgnore( keyValueArray[0].Trim(), keyValueArray.Length > 2 ? keyValueArray[2].Trim() : keyValueArray[0].Trim() );
+                            items.AddOrReplace( keyValueArray[0].Trim(), keyValueArray.Length > 2 ? keyValueArray[2].Trim() : keyValueArray[0].Trim() );
                         }
                     }
                 }

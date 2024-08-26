@@ -68,7 +68,6 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             decimal? yValue = GetAttributeValue( action, "YValue", true ).ResolveMergeFields( mergeFields ).Trim().AsDecimalOrNull();
             string note = GetAttributeValue( action, "Note", true ).ResolveMergeFields( mergeFields ).Trim();
 
-
             // Get the entity
             MetricService metricService = new MetricService( _rockContext );
             MetricValueService metricValueService = new MetricValueService( _rockContext );
@@ -125,7 +124,8 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             var attributeMatrix = new AttributeMatrixService( rockContext ).Get( attributeMatrixGuid );
             if ( attributeMatrix != null )
             {
-                foreach ( AttributeMatrixItem attributeMatrixItem in attributeMatrix.AttributeMatrixItems )
+                var orderedAttributeMatrixItems = attributeMatrix.AttributeMatrixItems.OrderBy( ami => ami.Order ).ToList();
+                foreach ( AttributeMatrixItem attributeMatrixItem in orderedAttributeMatrixItems )
                 {
                     attributeMatrixItem.LoadAttributes();
 
@@ -186,7 +186,6 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                     valuePartition.MetricPartitionId = partition.Id;
                     valuePartition.EntityId = entityObject.Id;
                     metricValue.MetricValuePartitions.Add( valuePartition );
-
                 }
             }
 
