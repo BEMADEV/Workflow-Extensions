@@ -437,6 +437,16 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
 
         #endregion
 
+        #region Persistence
+
+        /// <inheritdoc/>
+        public override bool IsPersistedValueSupported( Dictionary<string, string> privateConfigurationValues )
+        {
+            return false;
+        }
+
+        #endregion
+
         public static Dictionary<string, string> GetConfiguredChildValues( Dictionary<string, ConfigurationValue> configurationValues, string propertyName, string parentValue = null )
         {
             var items = new Dictionary<string, string>();
