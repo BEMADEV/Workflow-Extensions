@@ -24,6 +24,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Jobs;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -35,7 +36,7 @@ namespace com.bemaservices.WorkflowExtensions.Jobs
     [CodeEditorField( "Lava", "The <span class='tip tip-lava'></span> to run.", Rock.Web.UI.Controls.CodeEditorMode.Lava, Rock.Web.UI.Controls.CodeEditorTheme.Rock, 300, true, "", "", 0, "Value" )]
     [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for this action.", false, order: 1 )]
     [DisallowConcurrentExecution]
-    public class RunLava : IJob
+    public class RunLava : RockJob
     {
         /// <summary> 
         /// Empty constructor for job initialization
@@ -55,19 +56,17 @@ namespace com.bemaservices.WorkflowExtensions.Jobs
         /// <see cref="ITrigger" /> fires that is associated with
         /// the <see cref="IJob" />.
         /// </summary>
-        public virtual void Execute( IJobExecutionContext context )
+        public override void Execute( )
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             // run lava code to do something
-            string lavaCode = dataMap.GetString( "Value" );
-            string lavaCommands = dataMap.GetString( "EnabledLavaCommands" );
+            string lavaCode = GetAttributeValue( "Value" );
+            string lavaCommands = GetAttributeValue( "EnabledLavaCommands" );
             try
             {
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
                 string value = lavaCode.ResolveMergeFields( mergeFields, lavaCommands ).Trim();
 
-                context.Result = value;
+                this.Result = value;
             }
             catch ( System.Exception ex )
             {
