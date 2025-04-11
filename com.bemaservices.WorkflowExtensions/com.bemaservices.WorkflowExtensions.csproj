@@ -92,6 +92,7 @@
     <Compile Include="Web\UI\Controls\Pickers\SelectExtendedPicker.cs" />
     <Compile Include="Workflow\Action\Communications\SendSmsFromAttribute.cs" />
     <Compile Include="Workflow\Action\Finance\CancelScheduledTransaction.cs" />
+    <Compile Include="Workflow\Action\Groups\AutoScheduleGroupType.cs" />
     <Compile Include="Workflow\Action\Groups\AddPersonToGroupAttribute.cs" />
     <Compile Include="Workflow\Action\Person\ResetPassword.cs" />
     <Compile Include="Workflow\Action\Person\AddNewPersonToFamily.cs" />

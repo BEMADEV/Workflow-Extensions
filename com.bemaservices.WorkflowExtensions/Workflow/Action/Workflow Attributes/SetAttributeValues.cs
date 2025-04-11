@@ -55,6 +55,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             errorMessages = new List<string>();
             var attributeMatrixGuid = GetAttributeValue( action, "Matrix" ).AsGuid();
             var attributeMatrix = new AttributeMatrixService( rockContext ).Get( attributeMatrixGuid );
+            var mergeFields = GetMergeFields( action );
             if ( attributeMatrix != null )
             {
                 foreach ( AttributeMatrixItem attributeMatrixItem in attributeMatrix.AttributeMatrixItems )
@@ -64,7 +65,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                     var attribute = AttributeCache.Get( attributeMatrixItem.GetAttributeValue( "WorkflowAttribute" ).AsGuid(), rockContext );
                     if ( attribute != null )
                     {
-                        string value = value = attributeMatrixItem.GetMatrixAttributeValue( action, "Value", true ).ResolveMergeFields( GetMergeFields( action ) );
+                        string value = value = attributeMatrixItem.GetMatrixAttributeValue( action, "Value", true ).ResolveMergeFields( mergeFields );
                         if ( attribute.FieldTypeId == FieldTypeCache.Get( Rock.SystemGuid.FieldType.ENCRYPTED_TEXT.AsGuid(), rockContext ).Id ||
                             attribute.FieldTypeId == FieldTypeCache.Get( Rock.SystemGuid.FieldType.SSN.AsGuid(), rockContext ).Id )
                         {

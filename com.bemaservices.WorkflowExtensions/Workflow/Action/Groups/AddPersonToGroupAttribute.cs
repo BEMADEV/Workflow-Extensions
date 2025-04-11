@@ -77,6 +77,14 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         IsRequired = false,
         Order = 5 )]
 
+    [WorkflowAttribute( "Group Member", 
+        Description = "An optional GroupMember attribute to store the group member that is added.", 
+        Key = AttributeKey.GroupMember,
+        IsRequired = false,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.GroupMemberFieldType" },
+        Order =  6
+         )]
+
     public class AddPersonToGroupWFAttribute : ActionComponent
     {
         private class AttributeKey
@@ -87,6 +95,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             public const string DisableSecurityGroups = "DisableSecurityGroups";
             public const string LimitToGroupsOfType = "LimitToGroupsOfType";
             public const string LimitToGroupsUnderSpecificParentGroup = "LimitToGroupsUnderSpecificParentGroup";
+            public const string GroupMember = "GroupMember";
         }
 
         /// <summary>
@@ -120,19 +129,26 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                         if ( group != null )
                         {
-                            var groupRole = group.GroupType.Roles.Where( gr => gr.Guid == GetAttributeValue( action, AttributeKey.GROUP_ROLE_ATTRIBUTE_KEY, true ).AsGuid() ).FirstOrDefault();
+                            var groupRoleGuid = GetAttributeValue( action, AttributeKey.GROUP_ROLE_ATTRIBUTE_KEY, true ).AsGuid();
+
+                            var groupRole = group.GroupType.Roles.Where( gr => gr.Guid == groupRoleGuid ).FirstOrDefault();
                             if ( groupRole == null )
                             {
                                 // use the group's grouptype's default group role if a group role wasn't specified
-                                groupRoleId = GroupTypeCache.Get( group.GroupTypeId ).Roles.FirstOrDefault().Id;
-                                if ( groupRoleId == null )
-                                {
-                                    errorMessages.Add( "Invalid or no Group Role provided." );
-                                }
+                                groupRole = group.GroupType.DefaultGroupRole;
                             }
-                            else
+
+                            if ( groupRole == null )
                             {
-                                groupRoleId = groupRole.Id;
+                                // use the group's grouptype's first found group role if a group role wasn't specified
+                                groupRole = group.GroupType.Roles.FirstOrDefault();                                
+                            }
+
+                            groupRoleId = groupRole.Id;
+
+                            if ( groupRoleId == null )
+                            {
+                                errorMessages.Add( "Invalid or no Group Role provided." );
                             }
                         }
                     }
@@ -259,6 +275,17 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                 {
                     // if the group member couldn't be added (for example, one of the group membership rules didn't pass), add the validation messages to the errormessages
                     errorMessages.AddRange( groupMember.ValidationResults.Select( a => a.ErrorMessage ) );
+                }
+
+                // If group member attribute was specified, requery the request and set the attribute's value
+                Guid? groupMemberAttributeGuid = GetAttributeValue( action, AttributeKey.GroupMember ).AsGuidOrNull();
+                if ( groupMemberAttributeGuid.HasValue )
+                {
+                    groupMember = groupMemberService.Get( groupMember.Id );
+                    if ( groupMember != null )
+                    {
+                        SetWorkflowAttributeValue( action, groupMemberAttributeGuid.Value, groupMember.Guid.ToString() );
+                    }
                 }
             }
 

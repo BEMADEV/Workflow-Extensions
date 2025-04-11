@@ -654,7 +654,6 @@ namespace com.bemaservices.WorkflowExtensions.Web.UI.Controls
             string listSource = ChildValues;
 
             var options = new Rock.Lava.CommonMergeFieldsOptions();
-            options.GetLegacyGlobalMergeFields = false;
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null, options );
 
             listSource = listSource.ResolveMergeFields( mergeFields );
