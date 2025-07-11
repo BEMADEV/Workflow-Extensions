@@ -182,19 +182,19 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             if ( group != null && group.GroupType != null )
             {
                 var groupRoleGuid = GetAttributeValue( action, AttributeKey.GROUP_ROLE_ATTRIBUTE_KEY, true ).AsGuid();
-                var configuredGroupRole = group.GroupType.Roles.Where( gr => gr.Guid == groupRoleGuid ).FirstOrDefault();
-                var firstGroupRole = group.GroupType.Roles.FirstOrDefault();
+                var configuredGroupRole = group?.GroupType?.Roles?.Where( gr => gr.Guid == groupRoleGuid ).FirstOrDefault();
+                var firstGroupRole = group?.GroupType?.Roles?.FirstOrDefault();
 
                 // Override Default Role if a configured one is specified.
                 if ( configuredGroupRole != null )
                 {
-                    groupRoleId = configuredGroupRole.Id;
+                    groupRoleId = configuredGroupRole?.Id;
                 }
 
                 // If a role still has not been found, use the first available one.
                 if ( groupRoleId == null && firstGroupRole != null )
                 {
-                    groupRoleId = firstGroupRole.Id;
+                    groupRoleId = firstGroupRole?.Id;
                 }
             }
 
@@ -279,9 +279,9 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                 // If group member attribute was specified, requery the request and set the attribute's value
                 Guid? groupMemberAttributeGuid = GetAttributeValue( action, AttributeKey.GroupMember ).AsGuidOrNull();
-                if ( groupMemberAttributeGuid.HasValue && groupMember != null && groupMember.Id > 0 )
+                if ( groupMemberAttributeGuid.HasValue && groupMember != null && groupMember?.Id > 0 )
                 {
-                    groupMember = groupMemberService.Get( groupMember.Id );
+                    groupMember = groupMemberService.Get( groupMember?.Id ?? 0 );
                     if ( groupMember != null )
                     {
                         SetWorkflowAttributeValue( action, groupMemberAttributeGuid.Value, groupMember.Guid.ToString() );
