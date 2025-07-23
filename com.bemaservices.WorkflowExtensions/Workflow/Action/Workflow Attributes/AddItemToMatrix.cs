@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
+using System.Reflection;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -105,8 +105,16 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                         var newMatrixItem = new AttributeMatrixItem();
                         newMatrixItem.AttributeMatrix = targetMatrix;
                         newMatrixItem.AttributeMatrixId = targetMatrix.Id;
-                        newMatrixItem.AttributeMatrixTemplate = targetMatrix.AttributeMatrixTemplate;
-                        newMatrixItem.AttributeMatrixTemplateId = targetMatrix.AttributeMatrixTemplateId;
+
+                        // if we check if the property exists and then set it, we can support both v16 and v17
+                        PropertyInfo attributeMatrixTemplateIdProperty = newMatrixItem.GetType().GetProperty( "AttributeMatrixTemplateId" );
+                        if ( attributeMatrixTemplateIdProperty != null && 
+                            attributeMatrixTemplateIdProperty.PropertyType == typeof( int ) && 
+                            attributeMatrixTemplateIdProperty.CanWrite )
+                        {
+                            attributeMatrixTemplateIdProperty.SetValue( newMatrixItem, targetMatrix.AttributeMatrixTemplateId );
+                        }
+
                         newMatrixItem.LoadAttributes();
                         action.AddLogEntry( string.Format( "New Matrix Item has the following {0} columns available: {1}",
                             newMatrixItem.Attributes.Count,
