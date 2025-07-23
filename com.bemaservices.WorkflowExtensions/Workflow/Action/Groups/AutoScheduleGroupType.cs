@@ -52,11 +52,13 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         DefaultIntegerValue = 7,
         Order = 1
         )]
+
     [BooleanField( "Are Members Auto-Confirmed?",
         Description = "Should group members be marked as requested, or should the job auto-confirm their scheduling on their behalf?",
         Key = AttributeKey.AutoConfirmMembers,
         IsRequired = true,
-        DefaultBooleanValue = false
+        DefaultBooleanValue = false,
+        Order = 2
         )]
 
     [WorkflowAttribute( "Auto Scheduler",
@@ -64,13 +66,6 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         Key = AttributeKey.AutoScheduler,
         IsRequired = true,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.PersonFieldType" },
-        Order = 2 )]
-
-    [WorkflowAttribute( "Auto Schedulers",
-        Description = "Alternatively, if you would like the accept/decline emails to be split evenly across a group, specify the group here.",
-        Key = AttributeKey.AutoSchedulerGroup,
-        IsRequired = true,
-        FieldTypeClassNames = new string[] { "Rock.Field.Types.GroupFieldType" },
         Order = 3 )]
 
     [WorkflowTextOrAttribute(
@@ -78,7 +73,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         "Auto-Schedule Attribute Key Attribute",
         Description = "The key of an optional boolean group attribute to check before auto-scheduling. <span class='tip tip-lava'></span>",
         IsRequired = true,
-        Order = 2,
+        Order = 4,
         Key = AttributeKey.AutoScheduleAttributeKey )]
 
     public class AutoScheduleGroupType : ActionComponent
@@ -89,7 +84,6 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             public const string WeeksOut = "WeeksOut";
             public const string AutoConfirmMembers = "AutoConfirmMembers";
             public const string AutoScheduler = "AutoScheduler";
-            public const string AutoSchedulerGroup = "AutoSchedulerGroup";
             public const string AutoScheduleAttributeKey = "AutoScheduleAttributeKey";
         }
 
