@@ -129,27 +129,8 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                         if ( group != null )
                         {
-                            var groupRoleGuid = GetAttributeValue( action, AttributeKey.GROUP_ROLE_ATTRIBUTE_KEY, true ).AsGuid();
-
-                            var groupRole = group.GroupType.Roles.Where( gr => gr.Guid == groupRoleGuid ).FirstOrDefault();
-                            if ( groupRole == null )
-                            {
-                                // use the group's grouptype's default group role if a group role wasn't specified
-                                groupRole = group.GroupType.DefaultGroupRole;
-                            }
-
-                            if ( groupRole == null )
-                            {
-                                // use the group's grouptype's first found group role if a group role wasn't specified
-                                groupRole = group.GroupType.Roles.FirstOrDefault();                                
-                            }
-
-                            groupRoleId = groupRole.Id;
-
-                            if ( groupRoleId == null )
-                            {
-                                errorMessages.Add( "Invalid or no Group Role provided." );
-                            }
+                            // use the group's grouptype's default group role if a group role wasn't specified
+                            groupRoleId = GroupTypeCache.Get( group.GroupTypeId ).DefaultGroupRoleId;
                         }
                     }
                 }
@@ -195,6 +176,25 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                     {
                         errorMessages.Add( $"Cannot add the person to group \"{group.Name}\". This workflow action is configured to only add persons to groups that are a descendant of Group {limitToChildGroupsOfGroup.Name}." );
                     }
+                }
+            }
+
+            if ( group != null && group.GroupType != null )
+            {
+                var groupRoleGuid = GetAttributeValue( action, AttributeKey.GROUP_ROLE_ATTRIBUTE_KEY, true ).AsGuid();
+                var configuredGroupRole = group?.GroupType?.Roles?.Where( gr => gr.Guid == groupRoleGuid ).FirstOrDefault();
+                var firstGroupRole = group?.GroupType?.Roles?.FirstOrDefault();
+
+                // Override Default Role if a configured one is specified.
+                if ( configuredGroupRole != null )
+                {
+                    groupRoleId = configuredGroupRole?.Id;
+                }
+
+                // If a role still has not been found, use the first available one.
+                if ( groupRoleId == null && firstGroupRole != null )
+                {
+                    groupRoleId = firstGroupRole?.Id;
                 }
             }
 
@@ -279,9 +279,9 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                 // If group member attribute was specified, requery the request and set the attribute's value
                 Guid? groupMemberAttributeGuid = GetAttributeValue( action, AttributeKey.GroupMember ).AsGuidOrNull();
-                if ( groupMemberAttributeGuid.HasValue )
+                if ( groupMemberAttributeGuid.HasValue && groupMember != null && groupMember?.Id > 0 )
                 {
-                    groupMember = groupMemberService.Get( groupMember.Id );
+                    groupMember = groupMemberService.Get( groupMember?.Id ?? 0 );
                     if ( groupMember != null )
                     {
                         SetWorkflowAttributeValue( action, groupMemberAttributeGuid.Value, groupMember.Guid.ToString() );

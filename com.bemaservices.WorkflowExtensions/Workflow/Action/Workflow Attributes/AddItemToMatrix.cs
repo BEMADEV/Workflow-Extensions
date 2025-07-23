@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
+using System.Reflection;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -59,12 +59,17 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
             var targetMatrixAttributeGuid = GetAttributeValue( action, "TargetMatrix" ).AsGuidOrNull();
             if ( targetMatrixAttributeGuid.HasValue )
             {
+                action.AddLogEntry( "Found Guid for the matrix attribute" );
                 var targetMatrixAttribute = AttributeCache.Get( targetMatrixAttributeGuid.Value );
                 if ( targetMatrixAttribute != null )
                 {
+                    action.AddLogEntry( "Found Attribute containing matrix" );
+
                     var targetMatrixGuid = action.GetWorkflowAttributeValue( targetMatrixAttributeGuid.Value ).AsGuidOrNull();
                     if ( !targetMatrixGuid.HasValue )
                     {
+                        action.AddLogEntry( "No matrix found. Adding new one" );
+
                         var templateQualifier = targetMatrixAttribute.QualifierValues.Where( aq => aq.Key == "attributematrixtemplate" ).FirstOrDefault();
                         if ( targetMatrixAttribute.QualifierValues.ContainsKey( "attributematrixtemplate" )
                             && templateQualifier.Value != null
@@ -79,6 +84,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                             attributeMatrixService.Add( targetMatrix );
                             SetWorkflowAttributeValue( action, targetMatrixAttribute.Guid, targetMatrix.Guid.ToString() );
                             rockContext.SaveChanges();
+                            action.AddLogEntry( String.Format( "Added Matrix with Guid {0}", targetMatrix.Guid ) );
                         }
                         else
                         {
@@ -89,47 +95,69 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                     else
                     {
                         targetMatrix = attributeMatrixService.Get( targetMatrixGuid.Value );
+                        targetMatrix.AttributeMatrixTemplate = new AttributeMatrixTemplateService( rockContext ).Get( targetMatrix.AttributeMatrixTemplateId );
+                        action.AddLogEntry( String.Format( "Found matrix with Id {0}", targetMatrix.Id ) );
                     }
 
                     if ( targetMatrix != null )
                     {
+                        action.AddLogEntry( "Building new Matrix Item" );
                         var newMatrixItem = new AttributeMatrixItem();
                         newMatrixItem.AttributeMatrix = targetMatrix;
                         newMatrixItem.AttributeMatrixId = targetMatrix.Id;
+
+                        // if we check if the property exists and then set it, we can support both v16 and v17
+                        PropertyInfo attributeMatrixTemplateIdProperty = newMatrixItem.GetType().GetProperty( "AttributeMatrixTemplateId" );
+                        if ( attributeMatrixTemplateIdProperty != null && 
+                            attributeMatrixTemplateIdProperty.PropertyType == typeof( int ) && 
+                            attributeMatrixTemplateIdProperty.CanWrite )
+                        {
+                            attributeMatrixTemplateIdProperty.SetValue( newMatrixItem, targetMatrix.AttributeMatrixTemplateId );
+                        }
+
                         newMatrixItem.LoadAttributes();
+                        action.AddLogEntry( string.Format( "New Matrix Item has the following {0} columns available: {1}",
+                            newMatrixItem.Attributes.Count,
+                            newMatrixItem.Attributes.Select(a=> a.Key ).JoinStringsWithRepeatAndFinalDelimiterWithMaxLength(", ",", and ", null) ));
 
                         // Get Matrix with new Matrix Item
                         var attributeMatrixGuid = GetAttributeValue( action, "ItemMatrix" ).AsGuid();
                         var attributeMatrix = attributeMatrixService.Get( attributeMatrixGuid );
                         if ( attributeMatrix != null )
                         {
+                            action.AddLogEntry( string.Format("Found Mapping Matrix ID {0} with {1} items", attributeMatrix.Id, attributeMatrix.AttributeMatrixItems.Count) );
                             foreach ( AttributeMatrixItem attributeMatrixItem in attributeMatrix.AttributeMatrixItems )
                             {
+                                action.AddLogEntry( "Loading Mapping Item" );
                                 attributeMatrixItem.LoadAttributes();
 
                                 string columnKey = attributeMatrixItem.GetMatrixAttributeValue( action, "ColumnKey", true ).ResolveMergeFields( GetMergeFields( action ) );
+                                action.AddLogEntry( String.Format("Found Mapping for |{0}|", columnKey ));
+
                                 if ( newMatrixItem.Attributes.ContainsKey( columnKey ) )
                                 {
+                                    action.AddLogEntry( String.Format( "Found matching column in target matrix for {0}", columnKey ) );
+
                                     string columnValue = attributeMatrixItem.GetMatrixAttributeValue( action, "ColumnValue", true ).ResolveMergeFields( GetMergeFields( action ) );
                                     newMatrixItem.SetAttributeValue( columnKey, columnValue );
+                                    action.AddLogEntry( String.Format( "Set Attribute with Key {0} to {1}", columnKey, columnValue ) );
                                 }
                             }
                         }
 
                         if ( newMatrixItem.AttributeValues.Where( av => av.Value.Value.IsNotNullOrWhiteSpace() ).Any() )
                         {
+                            action.AddLogEntry( "Matrix has at least one non whitespace column" );
                             attributeMatrixItemService.Add( newMatrixItem );
                             rockContext.SaveChanges();
                             newMatrixItem.SaveAttributeValues();
+                            action.AddLogEntry( String.Format( "New Matrix Item added with Id {0}", newMatrixItem.Id ) );
                         }
-
                     }
-
                 }
             }
 
             return true;
         }
-
     }
 }

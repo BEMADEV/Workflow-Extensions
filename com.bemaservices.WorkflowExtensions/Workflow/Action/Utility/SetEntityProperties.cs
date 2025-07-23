@@ -150,13 +150,13 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                     if ( propInf == null )
                     {
-                        errorMessages.Add( string.Format( "Property does not exist ('{0}')!", propertyName ) );
+                        errorMessages.Add( string.Format( "Property '{0}' does not exist!", propertyName ) );
                         return false;
                     }
 
                     if ( !propInf.CanWrite )
                     {
-                        errorMessages.Add( string.Format( "Property is not writable ('{0}')!", entityIdGuidString ) );
+                        errorMessages.Add( string.Format( "Property '{0}' is not writable ('{1}')!", propertyName, entityIdGuidString ) );
                         return false;
                     }
 
@@ -166,7 +166,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                     }
                     catch ( Exception ex ) when ( ex is InvalidCastException || ex is FormatException || ex is OverflowException )
                     {
-                        errorMessages.Add( string.Format( "Could not convert property value ('{0}')! {1}", propertyValue, ex.Message ) );
+                        errorMessages.Add( string.Format( "Could not convert value for property '{0}': '{1}'! {2}", propertyName, propertyValue, ex.Message ) );
                         return false;
                     }
 
@@ -175,7 +175,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                         if ( !entityObject.IsValid )
                         {
-                            errorMessages.Add( string.Format( "Invalid property value ('{0}')! {1}", propertyValue, entityObject.ValidationResults.Select( r => r.ErrorMessage ).ToList().AsDelimited( " " ) ) );
+                            errorMessages.Add( string.Format( "Invalid value for property '{0}': '{1}'! {2}", propertyName, propertyValue, entityObject.ValidationResults.Select( r => r.ErrorMessage ).ToList().AsDelimited( " " ) ) );
                             return false;
                         }
 
@@ -185,7 +185,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
                         }
                         catch ( Exception ex )
                         {
-                            errorMessages.Add( string.Format( "Could not save value ('{0}')! {1}", propertyValue, ex.Message ) );
+                            errorMessages.Add( string.Format( "Could not save value for property '{0}': '{1}'! {2}", propertyName, propertyValue, ex.Message ) );
                             return false;
                         }
                     }

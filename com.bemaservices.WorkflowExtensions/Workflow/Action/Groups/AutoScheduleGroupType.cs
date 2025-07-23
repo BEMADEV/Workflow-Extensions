@@ -34,7 +34,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
     /// Adds person to a group using a workflow attribute.
     /// </summary>
     [ActionCategory( "BEMA Services > Workflow Extensions" )]
-    [Description( "Adds person to a group using a workflow attribute." )]
+    [Description( "Autoschedules groups." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Auto Schedule Group Type" )]
 
@@ -53,19 +53,27 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         Order = 1
         )]
 
+    [BooleanField( "Are Members Auto-Confirmed?",
+        Description = "Should group members be marked as requested, or should the job auto-confirm their scheduling on their behalf?",
+        Key = AttributeKey.AutoConfirmMembers,
+        IsRequired = true,
+        DefaultBooleanValue = false,
+        Order = 2
+        )]
+
     [WorkflowAttribute( "Auto Scheduler",
         Description = "Workflow attribute that contains the person doing the auto scheduling.",
         Key = AttributeKey.AutoScheduler,
         IsRequired = true,
         FieldTypeClassNames = new string[] { "Rock.Field.Types.PersonFieldType" },
-        Order = 2 )]
+        Order = 3 )]
 
     [WorkflowTextOrAttribute(
         "Auto-Schedule Attribute Key",
         "Auto-Schedule Attribute Key Attribute",
         Description = "The key of an optional boolean group attribute to check before auto-scheduling. <span class='tip tip-lava'></span>",
         IsRequired = true,
-        Order = 2,
+        Order = 4,
         Key = AttributeKey.AutoScheduleAttributeKey )]
 
     public class AutoScheduleGroupType : ActionComponent
@@ -74,6 +82,7 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
         {
             public const string GroupType = "GroupType";
             public const string WeeksOut = "WeeksOut";
+            public const string AutoConfirmMembers = "AutoConfirmMembers";
             public const string AutoScheduler = "AutoScheduler";
             public const string AutoScheduleAttributeKey = "AutoScheduleAttributeKey";
         }
@@ -263,21 +272,25 @@ namespace com.bemaservices.WorkflowExtensions.Workflow.Action
 
                 try
                 {
-                    // Mark all occurrences with schedules as confirmed
-                    foreach ( int occurrenceId in attendanceOccurrenceIdList )
+                    var areMembersAutoConfirmed = GetAttributeValue( action, AttributeKey.AutoConfirmMembers ).AsBoolean();
+                    if ( areMembersAutoConfirmed )
                     {
-                        List<int> attendanceIds = attendanceService.Queryable().AsNoTracking()
-                            //BD, BEMA 11/16/2022: Add RequestedToAttend check, only auto-confirm if true
-                            .Where( a => a.OccurrenceId == occurrenceId && a.DidAttend != true && a.RequestedToAttend == true ) 
-                            .Where( a => a.RSVP == RSVP.Maybe || a.RSVP == RSVP.Unknown )
-                            .Select( a => a.Id )
-                            .ToList();
-                        foreach ( int attendanceId in attendanceIds )
+                        // Mark all occurrences with schedules as confirmed
+                        foreach ( int occurrenceId in attendanceOccurrenceIdList )
                         {
-                            attendanceService.ScheduledPersonConfirm( attendanceId );
+                            List<int> attendanceIds = attendanceService.Queryable().AsNoTracking()
+                                //BD, BEMA 11/16/2022: Add RequestedToAttend check, only auto-confirm if true
+                                .Where( a => a.OccurrenceId == occurrenceId && a.DidAttend != true && a.RequestedToAttend == true )
+                                .Where( a => a.RSVP == RSVP.Maybe || a.RSVP == RSVP.Unknown )
+                                .Select( a => a.Id )
+                                .ToList();
+                            foreach ( int attendanceId in attendanceIds )
+                            {
+                                attendanceService.ScheduledPersonConfirm( attendanceId );
+                            }
                         }
+                        rockContext.SaveChanges();
                     }
-                    rockContext.SaveChanges();
                 }
                 catch ( Exception ex )
                 {
