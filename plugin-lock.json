@@ -1,0 +1,11 @@
+{
+  "lockFileVersion": 1,
+  "versions": [
+    {
+      "version": "1.0.10",
+      "installedFiles": [
+        "Bin/com.bemaservices.WorkflowExtensions.dll"
+      ]
+    }
+  ]
+}
