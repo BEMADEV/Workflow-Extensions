@@ -1,0 +1,12 @@
+{
+    "organization": {
+        "name": "BEMA Software Services",
+        "code": "com.bemaservices"
+    },
+    "name": "Workflow Extensions",
+    "version": "1.0.10",
+    "include": {
+        "com.bemaservices.WorkflowExtensions/bin/Release/net472/com.bemaservices.WorkflowExtensions.dll": "Bin/"
+    },
+    "exclude": []
+}
