@@ -6,6 +6,12 @@
       "installedFiles": [
         "Bin/com.bemaservices.WorkflowExtensions.dll"
       ]
+    },
+    {
+      "version": "1.0.11",
+      "installedFiles": [
+        "Bin/com.bemaservices.WorkflowExtensions.dll"
+      ]
     }
   ]
 }

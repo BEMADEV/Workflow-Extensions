@@ -4,7 +4,7 @@
         "code": "com.bemaservices"
     },
     "name": "Workflow Extensions",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "include": {
         "com.bemaservices.WorkflowExtensions/bin/Release/net472/com.bemaservices.WorkflowExtensions.dll": "Bin/"
     },
