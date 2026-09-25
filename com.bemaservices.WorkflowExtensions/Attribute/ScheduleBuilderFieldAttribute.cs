@@ -23,7 +23,7 @@ namespace com.bemaservices.WorkflowExtensions.Attribute
 {
     public class ScheduleBuilderFieldAttribute : FieldAttribute
     {
-        public ScheduleBuilderFieldAttribute( string name = "Schedule Builder", string description = "", bool required = true, string category = "", int order = 0, string key = null )
+        public ScheduleBuilderFieldAttribute( string name = "BEMA Schedule Builder", string description = "", bool required = true, string category = "", int order = 0, string key = null )
             : base( name, description, required, null, category, order, key, typeof( ScheduleBuilderFieldType ).FullName )
         {
         }

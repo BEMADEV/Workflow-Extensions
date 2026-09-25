@@ -30,6 +30,7 @@ using Rock.Web.UI.Controls;
 
 namespace com.bemaservices.WorkflowExtensions.Field.Types
 {
+    // TODO: When development moves full-time to Rock v20, migrate attributes to the core Schedule Builder field type and remove this implementation.
     public class ScheduleBuilderFieldType : Rock.Field.FieldType, IEntityFieldType
     {
         #region Configuration
