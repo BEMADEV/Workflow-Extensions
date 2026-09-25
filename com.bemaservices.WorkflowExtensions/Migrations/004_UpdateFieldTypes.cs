@@ -73,6 +73,10 @@ namespace com.bemaservices.WorkflowExtensions.Migrations
         Update Attribute
         Set FieldTypeId = @CoreFieldTypeId
         Where FieldTypeId = @BemaFieldTypeId
+
+        Delete 
+        From FieldType
+        Where Id = @BemaFieldTypeId
         End
 " );
         }
