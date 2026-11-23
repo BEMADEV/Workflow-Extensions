@@ -1,0 +1,22 @@
+{
+    "name": "com.bemaservices.workflowextensions.obsidian",
+    "private": true,
+    "scripts": {
+        "build": "npm run typecheck && obsidian-build",
+        "typecheck": "vue-tsc --noEmit -p src",
+        "watch": "obsidian-build --watch",
+        "clean": "rimraf dist"
+    },
+    "dependencies": {
+        "@rockrms/obsidian-framework": "^17.6.1"
+    },
+    "devDependencies": {
+        "@sparkdevnetwork/obsidian-build-tools": "^1.0.4",
+        "@types/node": "^20.5.7",
+        "rimraf": "^5.0.1",
+        "tslib": "^2.6.2",
+        "typescript": "^5.5.4",
+        "vue": "^3.2.0",
+        "vue-tsc": "^2.1.6"
+    }
+}

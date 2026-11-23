@@ -1,0 +1,10 @@
+/bin/
+/obj/
+/dist/
+/*.suo
+/*.user
+/node_modules
+.cache
+*.map
+packages
+.vs/

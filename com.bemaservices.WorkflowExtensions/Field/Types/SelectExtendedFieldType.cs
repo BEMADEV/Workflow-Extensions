@@ -36,6 +36,9 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
     /// Field Type used to display a list of options as checkboxes.  Value is saved as a | delimited list
     /// </summary>
     [Serializable]
+    [Rock.Attribute.FieldTypeUsage( Rock.Field.FieldTypeUsage.Common )]
+    [Rock.Attribute.RockPlatformSupport( Rock.Utility.RockPlatform.WebForms, Rock.Utility.RockPlatform.Obsidian )]
+    [Rock.SystemGuid.FieldTypeGuid( "E38F21D9-12AD-43BB-A6BA-E51B889C168D" )]
     public class SelectExtendedFieldType : Rock.Field.FieldType
     {
 
@@ -48,6 +51,9 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
         private const string CHILD_VALUES_KEY = "child_values";
         private const string CHILD_FIELDTYPE_KEY = "child_fieldtype";
         private const string CHILD_REPEAT_COLUMNS = "child_repeatColumns";
+
+        private const string CUSTOM_PARENT_VALUES_PUBLIC_KEY = "customParentValues";
+        private const string CUSTOM_CHILD_VALUES_PUBLIC_KEY = "customChildValues";
 
         /// <summary>
         /// Returns a list of the configuration keys
@@ -64,6 +70,48 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
             configKeys.Add( CHILD_FIELDTYPE_KEY );
             configKeys.Add( CHILD_REPEAT_COLUMNS );
             return configKeys;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, string> GetPublicConfigurationValues( Dictionary<string, string> privateConfigurationValues, ConfigurationValueUsage usage, string privateValue )
+        {
+            var publicConfigurationValues = base.GetPublicConfigurationValues( privateConfigurationValues, usage, privateValue );
+
+            if ( usage == ConfigurationValueUsage.Configure )
+            {
+                publicConfigurationValues[CUSTOM_PARENT_VALUES_PUBLIC_KEY] = privateConfigurationValues.GetValueOrNull( PARENT_VALUES_KEY ) ?? string.Empty;
+                publicConfigurationValues[CUSTOM_CHILD_VALUES_PUBLIC_KEY] = privateConfigurationValues.GetValueOrNull( CHILD_VALUES_KEY ) ?? string.Empty;
+            }
+
+            publicConfigurationValues[PARENT_VALUES_KEY] = Helper.GetConfiguredValues( privateConfigurationValues, PARENT_VALUES_KEY )
+                .Select( item => new
+                {
+                    value = item.Key,
+                    text = item.Value
+                } )
+                .ToCamelCaseJson( false, true );
+
+            publicConfigurationValues[CHILD_VALUES_KEY] = GetConfiguredChildOptions( privateConfigurationValues )
+                .ToCamelCaseJson( false, true );
+
+            return publicConfigurationValues;
+        }
+
+        /// <inheritdoc/>
+        public override Dictionary<string, string> GetPrivateConfigurationValues( Dictionary<string, string> publicConfigurationValues )
+        {
+            var privateConfigurationValues = base.GetPrivateConfigurationValues( publicConfigurationValues );
+
+            privateConfigurationValues.Remove( PARENT_VALUES_KEY );
+            privateConfigurationValues.Remove( CHILD_VALUES_KEY );
+
+            privateConfigurationValues[PARENT_VALUES_KEY] = privateConfigurationValues.GetValueOrNull( CUSTOM_PARENT_VALUES_PUBLIC_KEY ) ?? string.Empty;
+            privateConfigurationValues[CHILD_VALUES_KEY] = privateConfigurationValues.GetValueOrNull( CUSTOM_CHILD_VALUES_PUBLIC_KEY ) ?? string.Empty;
+
+            privateConfigurationValues.Remove( CUSTOM_PARENT_VALUES_PUBLIC_KEY );
+            privateConfigurationValues.Remove( CUSTOM_CHILD_VALUES_PUBLIC_KEY );
+
+            return privateConfigurationValues;
         }
 
         /// <summary>
@@ -283,7 +331,7 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
         /// <returns></returns>
         public override string FormatValue( System.Web.UI.Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
         {
-            return GetTextValue( value, configurationValues.ToDictionary( k => k.Key, k => k.Value.Value ) );            
+            return GetTextValue( value, configurationValues.ToDictionary( k => k.Key, k => k.Value.Value ) );
         }
 
         #endregion
@@ -471,6 +519,60 @@ namespace com.bemaservices.WorkflowExtensions.Field.Types
             }
 
             return items;
+        }
+
+        private static List<SelectExtendedOption> GetConfiguredChildOptions( Dictionary<string, string> configurationValues )
+        {
+            var items = new List<SelectExtendedOption>();
+            var listSource = configurationValues.GetValueOrNull( CHILD_VALUES_KEY ) ?? string.Empty;
+            var options = new Rock.Lava.CommonMergeFieldsOptions();
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null, options );
+
+            listSource = listSource.ResolveMergeFields( mergeFields );
+
+            if ( listSource.ToUpper().Contains( "SELECT" ) && listSource.ToUpper().Contains( "FROM" ) )
+            {
+                var dataTable = DbService.GetDataTable( listSource, CommandType.Text, null );
+                if ( dataTable != null && dataTable.Columns.Contains( "Value" ) && dataTable.Columns.Contains( "ParentValue" ) && dataTable.Columns.Contains( "Text" ) )
+                {
+                    foreach ( DataRow row in dataTable.Rows )
+                    {
+                        items.Add( new SelectExtendedOption
+                        {
+                            Value = row["Value"].ToString(),
+                            ParentValue = row["ParentValue"].ToString(),
+                            Text = row["Text"].ToString()
+                        } );
+                    }
+                }
+            }
+            else
+            {
+                foreach ( var keyValue in listSource.Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries ) )
+                {
+                    var keyValueParts = keyValue.Split( new[] { '^' }, StringSplitOptions.RemoveEmptyEntries );
+                    if ( keyValueParts.Length > 1 )
+                    {
+                        items.Add( new SelectExtendedOption
+                        {
+                            Value = keyValueParts[0].Trim(),
+                            ParentValue = keyValueParts[1].Trim(),
+                            Text = keyValueParts.Length > 2 ? keyValueParts[2].Trim() : keyValueParts[0].Trim()
+                        } );
+                    }
+                }
+            }
+
+            return items;
+        }
+
+        private class SelectExtendedOption
+        {
+            public string Value { get; set; }
+
+            public string ParentValue { get; set; }
+
+            public string Text { get; set; }
         }
 
     }
